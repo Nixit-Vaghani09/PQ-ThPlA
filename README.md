@@ -16,4 +16,8 @@ for ML-KEM library selection:
  the cryptography.io ml-kem is not audited means less security and is comparably slower to libcrux and even libcrux is faster than cryptography.io , optimized through APX2 and NEON , so the choice for ML-KEM is libcrux .
 
  also libcrux provide personalization for key length selection and inputs for key-generation and shared secret genration
+<<<<<<< HEAD
  
+=======
+ 
+>>>>>>> 544a79f10cebdec639c6e7a9ba1bd1b374b9182a
