@@ -1,0 +1,8 @@
+[package]
+name = "PQ-ThPlA"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+libcrux-ml-kem = "0.0.9"
+rand = "0.8"
