@@ -1,8 +1,12 @@
 [package]
-name = "PQ-ThPlA"
+name = "pq_thpla"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+aes-gcm = "0.11.1"
+hkdf = "0.13.0"
 libcrux-ml-kem = "0.0.9"
 rand = "0.8"
+sha2 = "0.11.0"
+zeroize = "1.9.0"
