@@ -54,4 +54,11 @@ fn aes_decrypt(key: &[u8; 32], nonce: &[u8; 12], ciphertext: &[u8]) -> Vec<u8> {
     cipher.decrypt(nonce, ciphertext).expect("decryption failure!")
 }
 
+fn generate_nonce(counter: u64) -> [u8;12]  {
+    let mut nonce = [0u8;12];
+    nonce[..8].copy_from_slice(&counter.to_le_bytes());
+    rand::thread_rng().fill_bytes(&mut nonce[8..]);
+    nonce
+}
+
 
