@@ -3,6 +3,9 @@ use libcrux_ml_kem::mlkem768:: {encapsulate,decapsulate};
 use libcrux_ml_kem::{MlKemPublicKey,MlKemPrivateKey,MlKemSharedSecret,MlKemCiphertext};
 use rand::{RngCore, rngs::OsRng};
 use sha2::{Sha256,Digest};
+use aes_gcm :: {Aes256Gcm, Key , Nonce};
+use aes_gcm ::aead:: {Aead,KeyInit};
+
 
 //this is to generate the random seed and nonce
 pub fn random_array<const L: usize>() -> [u8; L] {
@@ -32,4 +35,23 @@ pub fn decapsulation(private_key: &MlKemPrivateKey<2400> , cipher_text:&MlKemCip
     }
     Ok(shared_secret)
 }
+
+fn derived_aes_key(shared_secret: &[u8]) -> [u8;32] {
+    let hash = Sha256::digest(shared_secret);
+    hash[..32].try_into().expect("Failed to derive AES key")
+}
+
+fn aes_encrypt(key_bytes: &[u8;32], nonce: &[u8;12], plaintext: &[u8]) -> Vec<u8>{
+    let key = Key::<Aes256Gcm>::from_slice(key_bytes);
+    let cipher:Aes256Gcm = Aes256Gcm::new(&key);
+    let nonce = Nonce::from_slice(nonce);
+    cipher.encrypt(nonce, plaintext).expect("encryption failure!")
+}
+
+fn aes_decrypt(key: &[u8; 32], nonce: &[u8; 12], ciphertext: &[u8]) -> Vec<u8> {
+    let cipher: Aes256Gcm = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(key));
+    let nonce = Nonce::from_slice(nonce);
+    cipher.decrypt(nonce, ciphertext).expect("decryption failure!")
+}
+
 
