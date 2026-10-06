@@ -3,6 +3,7 @@ use sha2::{Sha256,Digest};
 use aes_gcm ::aead::  Error;
 use aes_gcm::aead::Error as AesError;
 use std::collections::HashSet;
+use std::fmt;
 use crate::mlkem;
 #[derive(Debug)]
 pub enum ChannelError {
@@ -12,25 +13,25 @@ pub enum ChannelError {
     KeyExpired,       
 }
 
-struct Channel_Context{
+pub struct Channel_Context{
     key:[u8;32],
     counter: u64,
     used_Nonces: HashSet<[u8;12]>,
 }
 
 #[derive(Debug, Clone)]
-struct message {
+pub struct message {
     pub nonce: [u8;12],
     pub ciphertext: Vec<u8>,
 }
 
 
 impl Channel_Context {
-    fn new(key: [u8;32]) -> Self {
+    pub fn new(key: [u8;32]) -> Self {
     Channel_Context { key, counter: 0 , used_Nonces: HashSet::new(),}
     }
 
-    fn next_nonce(&mut self) -> Result<[u8;12],ChannelError> {
+    pub fn next_nonce(&mut self) -> Result<[u8;12],ChannelError> {
         if self.counter > 1_000_000 {
             return Err(ChannelError::KeyExpired);
         }
@@ -42,13 +43,13 @@ impl Channel_Context {
     Ok(nonce)
     }
 
-    fn send_secure(&mut self, plain_text: &[u8]) -> Result<message,ChannelError> {
+    pub fn send_secure(&mut self, plain_text: &[u8]) -> Result<message,ChannelError> {
     let nonce = self.next_nonce()?; // generate nonce
     let cipher_text=mlkem::aes_encrypt(&self.key, &nonce, plain_text).map_err(ChannelError::EncryptionFailed)?;
     Ok(message{ciphertext:cipher_text,nonce:nonce})
     }
 
-    fn recieve_secure(&mut self,msg : &message) -> Result<Vec<u8>,ChannelError> {
+    pub fn receive_secure(&mut self,msg : &message) -> Result<Vec<u8>,ChannelError> {
     if self.used_Nonces.contains(&msg.nonce){
         return Err(ChannelError::NonceReuse);
     }
@@ -56,7 +57,7 @@ impl Channel_Context {
     mlkem::aes_decrypt(&self.key, &msg.nonce, &msg.ciphertext).map_err(ChannelError::DecryptionFailed)
     }
 
-    fn rotate_keys(&mut self,new_secret: &[u8]) -> Result<(),ChannelError>{
+    pub fn rotate_keys(&mut self,new_secret: &[u8]) -> Result<(),ChannelError>{
         self.key.zeroize();
         let hash = Sha256::digest(new_secret);
         let mut new_key = [0u8;32];
@@ -70,6 +71,18 @@ impl Channel_Context {
     }
 
 }
+
+impl fmt::Display for ChannelError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ChannelError::EncryptionFailed(e) => write!(f, "Encryption failed: {}", e),
+            ChannelError::DecryptionFailed(e) => write!(f, "Decryption failed: {}", e),
+            ChannelError::NonceReuse => write!(f, "Nonce reuse detected"),
+            ChannelError::KeyExpired => write!(f, "Key expired"),
+        }
+    }
+}
+
 
 impl Drop for Channel_Context {
     fn drop(&mut self) {
