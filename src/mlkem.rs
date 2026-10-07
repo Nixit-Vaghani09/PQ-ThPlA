@@ -2,7 +2,8 @@
 
 use libcrux_ml_kem::mlkem768::generate_key_pair;
 use libcrux_ml_kem::mlkem768:: {encapsulate,decapsulate};
-use libcrux_ml_kem::{MlKemPublicKey,MlKemPrivateKey,MlKemSharedSecret,MlKemCiphertext};
+use libcrux_ml_kem::{MlKemCiphertext, MlKemKeyPair, MlKemPrivateKey, MlKemPublicKey, MlKemSharedSecret};
+use rand::random;
 use rand::{RngCore, rngs::OsRng};
 use sha2::{Sha256,Digest};
 use aes_gcm :: {Aes256Gcm, Key , Nonce};
@@ -21,6 +22,13 @@ pub fn random_array<const L: usize>() -> [u8; L] {
     let mut seed = [0u8; L];
     OsRng.fill_bytes(&mut seed);
     seed
+}
+
+pub fn generate_keypair() ->MlKemKeyPair<2400,1184> {
+    let keys= generate_key_pair(random_array());
+
+    
+    keys
 }
 pub fn encapsulation(public_key: &MlKemPublicKey<1184>) -> Result<(MlKemCiphertext<1088>,MlKemSharedSecret),String> {
        

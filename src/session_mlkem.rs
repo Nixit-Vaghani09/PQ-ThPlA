@@ -25,7 +25,7 @@ impl SessionContext {
         Ok(msg) => Ok(msg),
         Err(e) => {
             if e.to_string() == "KeyExpired" {
-                let keys = generate_key_pair(mlkem::random_array());
+                let keys = mlkem::generate_keypair();
 
                 let (ciphertext, new_secret) = mlkem::encapsulation(keys.public_key())?;
 

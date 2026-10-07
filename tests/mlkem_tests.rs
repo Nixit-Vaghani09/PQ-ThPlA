@@ -6,7 +6,7 @@ use pq_thpla::mlkem::*;
 
 #[test]
 fn test_encapsulation_decapsulation() {
-    let keys = generate_key_pair(random_array());
+    let keys = generate_keypair();
     let (cipher_text, ss_alice) = encapsulation(keys.public_key()).unwrap();
     let ss_bob = decapsulation(keys.private_key(), &cipher_text).unwrap();
     assert_eq!(ss_alice, ss_bob);
@@ -37,8 +37,8 @@ fn test_randomarray_rangeofvalue() {
 
 #[test]
 fn test_encapsulation_withwrongkey() {
-    let keys1 = generate_key_pair(random_array());
-    let keys2 = generate_key_pair(random_array());
+    let keys1 = generate_keypair();
+    let keys2 = generate_keypair();
     let (cipher_text, ss_alice) = encapsulation(keys1.public_key()).unwrap();
     let ss_bob = decapsulation(keys2.private_key(), &cipher_text).unwrap();
     assert_ne!(ss_alice, ss_bob);
@@ -46,7 +46,7 @@ fn test_encapsulation_withwrongkey() {
 
 #[test]
 fn test_decapsulation_fails_wrongcipher() {
-    let keys = generate_key_pair(random_array());
+    let keys = generate_keypair();
     let (mut ciphertext, ss_alice) = encapsulation(keys.public_key()).unwrap();
 
     
