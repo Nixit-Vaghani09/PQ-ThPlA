@@ -15,8 +15,10 @@ pub enum ChannelError {
 
 pub struct ChannelContext {
     key: [u8; 32],                // channel owns the AES key
-    counter: u64,
-    used_nonces: HashSet<[u8; 12]>,
+    send_counter: u64,
+    receive_counter:u64,
+    used_send_nonces: HashSet<[u8; 12]>,
+    used_receive_nonces: HashSet<[u8;12]>,
 }
 
 #[derive(Debug, Clone)]
@@ -30,25 +32,39 @@ impl ChannelContext {
     pub fn new(session_key: [u8; 32]) -> Self {
         ChannelContext {
             key: session_key,
-            counter: 0,
-            used_nonces: HashSet::new(),
+            send_counter: 0,
+            receive_counter: 0,
+            used_send_nonces: HashSet::new(),
+            used_receive_nonces: HashSet::new()
         }
     }
 
-    pub fn next_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
-        if self.counter > 1_000_000 {
+    pub fn next_send_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
+        if self.send_counter > 1_000_000 {
             return Err(ChannelError::KeyExpired);
         }
-        let nonce = mlkem::generate_nonce(self.counter);
-        self.counter += 1;
-        if !self.used_nonces.insert(nonce) {
+        let nonce = mlkem::generate_nonce(self.send_counter);
+        self.receive_counter += 1;
+        if !self.used_send_nonces.insert(nonce) {
+            return Err(ChannelError::NonceReuse);
+        }
+        Ok(nonce)
+    }
+
+    pub fn next_receive_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
+        if self.receive_counter > 1_000_000 {
+            return Err(ChannelError::KeyExpired);
+        }
+        let nonce = mlkem::generate_nonce(self.receive_counter);
+        self.receive_counter += 1;
+        if !self.used_receive_nonces.insert(nonce) {
             return Err(ChannelError::NonceReuse);
         }
         Ok(nonce)
     }
 
     pub fn send_secure(&mut self, plain_text: &[u8]) -> Result<Message, ChannelError> {
-        let nonce = self.next_nonce()?; 
+        let nonce = self.next_send_nonce()?; 
         let cipher_text = mlkem::aes_encrypt(&self.key, &nonce, plain_text)
             .map_err(ChannelError::EncryptionFailed)?;
         Ok(Message {
@@ -58,12 +74,15 @@ impl ChannelContext {
     }
 
     pub fn receive_secure(&mut self, msg: &Message) -> Result<Vec<u8>, ChannelError> {
-        if self.used_nonces.contains(&msg.nonce) {
+        if self.used_receive_nonces.contains(&msg.nonce) {
             return Err(ChannelError::NonceReuse);
         }
-        self.used_nonces.insert(msg.nonce);
+        
         match mlkem::aes_decrypt(&self.key, &msg.nonce, &msg.ciphertext) {
-            Ok(plaintext) => Ok(plaintext),
+            Ok(plaintext) => {
+                self.used_receive_nonces.insert(msg.nonce);
+                Ok(plaintext)
+            }
             Err(e) => Err(ChannelError::DecryptionFailed(e)),
         }
     }
@@ -75,8 +94,10 @@ impl ChannelContext {
         self.key.copy_from_slice(&new_key);
         new_key.zeroize();
         new_secret.zeroize(); // wipe caller’s buffer
-        self.counter = 0;
-        self.used_nonces.clear();
+        self.send_counter =0;
+        self.receive_counter = 0;
+        self.used_send_nonces.clear();
+        self.used_receive_nonces.clear();
         Ok(())
     }
 }
@@ -95,8 +116,10 @@ impl fmt::Display for ChannelError {
 impl Drop for ChannelContext {
     fn drop(&mut self) {
         self.key.zeroize();       // wipe AES key
-        self.counter.zeroize();
-        self.used_nonces.clear();
+        self.send_counter.zeroize();
+        self.receive_counter.zeroize();
+        self.used_send_nonces.clear();
+        self.used_receive_nonces.clear();
     }
 }
 
