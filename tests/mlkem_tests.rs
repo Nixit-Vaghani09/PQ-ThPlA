@@ -7,8 +7,8 @@ use pq_thpla::mlkem::*;
 #[test]
 fn test_encapsulation_decapsulation() {
     let keys = generate_keypair();
-    let (cipher_text, ss_alice) = encapsulation(keys.public_key()).unwrap();
-    let ss_bob = decapsulation(keys.private_key(), &cipher_text).unwrap();
+    let (cipher_text, ss_alice) = encapsulation(keys.public_key()).expect("Encapsulation failed");
+    let ss_bob = decapsulation(keys.private_key(), &cipher_text).expect("Decapsulation failed");
     assert_eq!(ss_alice, ss_bob);
 }
 
@@ -39,22 +39,22 @@ fn test_randomarray_rangeofvalue() {
 fn test_encapsulation_withwrongkey() {
     let keys1 = generate_keypair();
     let keys2 = generate_keypair();
-    let (cipher_text, ss_alice) = encapsulation(keys1.public_key()).unwrap();
-    let ss_bob = decapsulation(keys2.private_key(), &cipher_text).unwrap();
+    let (cipher_text, ss_alice) = encapsulation(keys1.public_key()).expect("Encapsultion failed");
+    let ss_bob = decapsulation(keys2.private_key(), &cipher_text).expect("Decapsulation failed");
     assert_ne!(ss_alice, ss_bob);
 }
 
 #[test]
 fn test_decapsulation_fails_wrongcipher() {
     let keys = generate_keypair();
-    let (mut ciphertext, ss_alice) = encapsulation(keys.public_key()).unwrap();
+    let (mut ciphertext, ss_alice) = encapsulation(keys.public_key()).expect("Encapsulation failed");
 
     
     let mut ct_bytes: [u8; 1088] = ciphertext.as_ref().try_into().unwrap();
     ct_bytes[0] ^= 0xFF; // flip one byte
     let corrupted_ct =  MlKemCiphertext::<1088>::from(ct_bytes);
    
-    let ss_bob = decapsulation(keys.private_key(), &corrupted_ct).unwrap();
+    let ss_bob = decapsulation(keys.private_key(), &corrupted_ct).expect("Decapsulation failed");
     assert_ne!(ss_alice, ss_bob, "Corrupted ciphertext must not yield the same secret");
 }
 

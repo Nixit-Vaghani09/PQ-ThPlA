@@ -1,51 +1,32 @@
-use core::slice;
+use crate::channel_mlkem::{ChannelContext, ChannelError, Message};
 
-use crate::channel_mlkem::{Channel_Context, message, ChannelError};
-use crate::mlkem;
-use zeroize::Zeroize;
-use libcrux_ml_kem::mlkem768::{generate_key_pair };
-use std::fmt;
 pub struct SessionContext {
-    channel: Channel_Context,
+    channel: ChannelContext,  // channel owns the AES key
     session_id: u64,
 }
 
 impl SessionContext {
-    pub fn new(initial_secret: &[u8], session_id: u64) -> Self {
-        let key: [u8;32] =initial_secret.try_into().expect("slice must be 32 bytes"); 
-        let mut ctx = Channel_Context::new(key);
+    /// Create a new session with ownership of the session key
+    pub fn new(session_key: [u8; 32], session_id: u64) -> Self {
+        let ctx = ChannelContext::new(session_key);
         SessionContext {
             channel: ctx,
             session_id,
         }
     }
 
-    pub fn send(&mut self, plaintext: &[u8]) -> Result<message, String> {
-    match self.channel.send_secure(plaintext) {
-        Ok(msg) => Ok(msg),
-        Err(e) => {
-            if e.to_string() == "KeyExpired" {
-                let keys = mlkem::generate_keypair();
-
-                let (ciphertext, new_secret) = mlkem::encapsulation(keys.public_key())?;
-
-                let shared_secret = mlkem::decapsulation(keys.private_key(), &ciphertext)?;
-
-                self.channel.rotate_keys(&shared_secret)
-                    .map_err(|err| err.to_string())?;
-
-                self.channel.send_secure(plaintext)
-                    .map_err(|err| err.to_string())
-            } else {
-                Err(e.to_string())
-            }
-        }
+    /// Send a plaintext message securely
+    pub fn send(&mut self, plaintext: &[u8]) -> Result<Message, ChannelError> {
+        self.channel.send_secure(plaintext)
     }
-}
 
-
-    pub fn receive(&mut self, msg: &message) -> Result<Vec<u8>, ChannelError> {
+    /// Receive and decrypt a message
+    pub fn receive(&mut self, msg: &Message) -> Result<Vec<u8>, ChannelError> {
         self.channel.receive_secure(msg)
     }
-    
+
+    /// Rotate the session key using a mutable reference to the new secret
+    pub fn rotate_key(&mut self, new_secret: &mut [u8]) -> Result<(), ChannelError> {
+        self.channel.rotate_key(new_secret)
+    }
 }

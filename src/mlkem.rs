@@ -8,6 +8,7 @@ use rand::{RngCore, rngs::OsRng};
 use sha2::{Sha256,Digest};
 use aes_gcm :: {Aes256Gcm, Key , Nonce};
 use aes_gcm ::aead:: {Aead,KeyInit , Error};
+use crate :: channel_mlkem :: ChannelError;
 
 
 use aes_gcm::aead::Error as AesError;
@@ -30,25 +31,27 @@ pub fn generate_keypair() ->MlKemKeyPair<2400,1184> {
     
     keys
 }
-pub fn encapsulation(public_key: &MlKemPublicKey<1184>) -> Result<(MlKemCiphertext<1088>,MlKemSharedSecret),String> {
+pub fn encapsulation(public_key: &MlKemPublicKey<1184>) -> Result<(MlKemCiphertext<1088>,MlKemSharedSecret),ChannelError> {
        
    
     let (cipher_text,shared_secret) = encapsulate(public_key,random_array());
     if shared_secret.len() != 32 {
-        return Err("shared secret length must be 32 bytes".into());
-    }
+        return Err(ChannelError::EncryptionFailed(
+            aes_gcm::Error,
+        ));    }
     
     Ok((cipher_text,shared_secret))
     
 }
 
-pub fn decapsulation(private_key: &MlKemPrivateKey<2400> , cipher_text:&MlKemCiphertext<1088> ) -> Result<(MlKemSharedSecret),String> {
+pub fn decapsulation(private_key: &MlKemPrivateKey<2400> , cipher_text:&MlKemCiphertext<1088> ) -> Result<(MlKemSharedSecret),ChannelError> {
     
     
     let (shared_secret) = decapsulate(private_key,cipher_text);
     if shared_secret.len() != 32 {
-        return Err("Shared secret length must be 32 bytes".into());
-    }
+        return Err(ChannelError::DecryptionFailed(
+            aes_gcm::Error,
+        ));    }
     Ok(shared_secret)
 }
 
