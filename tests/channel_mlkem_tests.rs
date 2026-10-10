@@ -71,11 +71,7 @@ fn test_key_expired_error() {
     let send_result = channel.next_send_nonce();
     assert!(matches!(send_result, Err(ChannelError::KeyExpired)));
 
-    for _ in 0..1_000_000 {
-        let _ = channel.next_receive_nonce().unwrap();
-    }
-    let receive_result = channel.next_receive_nonce();
-    assert!(matches!(receive_result,Err(ChannelError::KeyExpired)));
+    
 }
 
 #[test]

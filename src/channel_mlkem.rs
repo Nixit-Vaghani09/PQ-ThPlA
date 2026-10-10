@@ -40,26 +40,22 @@ impl ChannelContext {
     }
 
     pub fn next_send_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
-        if self.send_counter > 1_000_000 {
+        if self.send_counter >= 1_000_000 {
             return Err(ChannelError::KeyExpired);
         }
         let nonce = mlkem::generate_nonce(self.send_counter);
-        self.receive_counter += 1;
-        if !self.used_send_nonces.insert(nonce) {
-            return Err(ChannelError::NonceReuse);
-        }
+        self.send_counter += 1;
+        self.used_send_nonces.insert(nonce);
         Ok(nonce)
     }
 
     pub fn next_receive_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
-        if self.receive_counter > 1_000_000 {
+        if self.receive_counter >= 1_000_000 {
             return Err(ChannelError::KeyExpired);
         }
         let nonce = mlkem::generate_nonce(self.receive_counter);
         self.receive_counter += 1;
-        if !self.used_receive_nonces.insert(nonce) {
-            return Err(ChannelError::NonceReuse);
-        }
+        self.used_receive_nonces.insert(nonce) ;
         Ok(nonce)
     }
 
