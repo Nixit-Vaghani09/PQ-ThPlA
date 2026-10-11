@@ -29,4 +29,14 @@ impl SessionContext {
     pub fn rotate_key(&mut self, new_secret: &mut [u8]) -> Result<(), ChannelError> {
         self.channel.rotate_key(new_secret)
     }
+
+    
+    pub fn next_send_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
+        self.channel.next_send_nonce()
+    }
+
+    pub fn next_receive_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
+        self.channel.next_receive_nonce()
+    }
 }
+
