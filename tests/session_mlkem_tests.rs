@@ -1,6 +1,6 @@
-use pq_thpla::session_mlkem::{SessionContext};
-use pq_thpla::channel_mlkem::{ChannelError, Message};
-use pq_thpla::mlkem::random_array;
+use pq_thpla::ml_kem::session_mlkem::{SessionContext};
+use pq_thpla::ml_kem::channel_mlkem::{ChannelError, Message};
+use pq_thpla::ml_kem::mlkem::random_array;
 
 #[test]
 fn test_session_initialization() {

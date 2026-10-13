@@ -1,6 +1,6 @@
-use pq_thpla::mlkem;
-use pq_thpla::mlkem::generate_keypair;
-use pq_thpla::session_mlkem::SessionContext;
+use pq_thpla::ml_kem::mlkem;
+use pq_thpla::ml_kem::mlkem::generate_keypair;
+use pq_thpla::ml_kem::session_mlkem::SessionContext;
 
 fn handshake_demo() {
     // Bob generates ML-KEM key pair

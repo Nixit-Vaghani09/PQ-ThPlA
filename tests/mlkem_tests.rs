@@ -2,7 +2,7 @@ use std::ops::RangeInclusive;
 use libcrux_ml_kem::mlkem768::{generate_key_pair };
 
 use libcrux_ml_kem::MlKemCiphertext;
-use pq_thpla::mlkem::*;
+use pq_thpla::ml_kem::mlkem::*;
 
 #[test]
 fn test_encapsulation_decapsulation() {

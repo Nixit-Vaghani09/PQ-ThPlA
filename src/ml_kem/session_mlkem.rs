@@ -1,4 +1,4 @@
-use crate::channel_mlkem::{ChannelContext, ChannelError, Message};
+use crate::ml_kem::channel_mlkem::{ChannelContext, ChannelError, Message};
 
 pub struct SessionContext {
     channel: ChannelContext,  // channel owns the AES key

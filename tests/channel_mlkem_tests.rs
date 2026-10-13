@@ -1,5 +1,5 @@
-use pq_thpla::channel_mlkem::{ChannelContext, ChannelError, Message};
-use pq_thpla::mlkem::random_array;
+use pq_thpla::ml_kem::channel_mlkem::{ChannelContext, ChannelError, Message};
+use pq_thpla::ml_kem::mlkem::random_array;
 
 #[test]
 fn test_channel_context_initialization() {

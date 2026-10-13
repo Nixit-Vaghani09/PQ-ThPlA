@@ -8,7 +8,7 @@ use rand::{RngCore, rngs::OsRng};
 use sha2::{Sha256,Digest};
 use aes_gcm :: {Aes256Gcm, Key , Nonce};
 use aes_gcm ::aead:: {Aead,KeyInit , Error};
-use crate :: channel_mlkem :: ChannelError;
+use crate :: ml_kem::channel_mlkem :: ChannelError;
 
 
 use aes_gcm::aead::Error as AesError;

@@ -1,4 +1,4 @@
-use crate::mlkem;
+use crate::ml_kem::mlkem;
 use aes_gcm::aead::Error as AesError;
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
