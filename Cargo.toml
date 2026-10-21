@@ -10,3 +10,6 @@ libcrux-ml-kem = "0.0.9"
 rand = "0.8"
 sha2 = "0.11.0"
 zeroize = "1.9.0"
+pqcrypto-sphincsplus = "0.7.2"
+p256 = { version = "0.13", features = ["ecdh"] }
+rand_core = "0.6"

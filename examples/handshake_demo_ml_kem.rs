@@ -1,7 +1,7 @@
 use pq_thpla::ml_kem::mlkem;
 use pq_thpla::ml_kem::mlkem::generate_keypair;
 use pq_thpla::ml_kem::session_mlkem::SessionContext;
-
+use std::time::Instant;
 fn handshake_demo() {
     // Bob generates ML-KEM key pair
     let keys = generate_keypair();
@@ -40,5 +40,8 @@ fn handshake_demo() {
 }
 
 fn main() {
+    let start = Instant::now();
     handshake_demo();
+    let duration = start.elapsed();
+    println!("Handshake demo took: {:?}",duration);
 }
