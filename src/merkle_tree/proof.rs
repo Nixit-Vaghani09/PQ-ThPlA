@@ -12,6 +12,7 @@ pub struct MerkleProof {
     pub nodes: Vec<ProofNode>,
 }
 
+
 pub fn verify_proof(leaf: Hash,proof: &MerkleProof,root: Hash) -> bool {
     let mut current = leaf;
 
