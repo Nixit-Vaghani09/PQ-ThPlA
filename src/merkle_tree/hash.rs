@@ -1,4 +1,12 @@
 use sha3::{Digest,Sha3_256};
+type Hash = [u8;32]; 
+pub fn hash_pair(first:&Hash,second:&Hash) -> Hash
+{
+    let mut hasher = Sha3_256::new();
+    hasher.update(first);
+    hasher.update(second);
+    hasher.finalize().into()
+}
 
 pub fn sha3_hash(data: &[u8]) -> Vec<u8>{
     let mut hasher = Sha3_256::new();

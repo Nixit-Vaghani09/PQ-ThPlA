@@ -1,30 +1,50 @@
-use crate::merkle_tree::hash::sha3_hash;
-pub struct MerkltTree {
-    pub leaves: Vec<Vec<u8>>,
-    pub root: Vec<u8>,
+use std::collections::HashMap;
+use crate::merkle_tree::hash::{hash_pair};
+pub type Hash = [u8;32];
+pub struct MerkleTree {
+    pub levels: Vec<Vec<Hash>>,
+    pub server_positions: HashMap<u32,usize>,
 }
 
-pub fn build_merkle_root(mut leaves: Vec<Vec<u8>>) -> Vec<u8> {
-    if leaves.is_empty() {
-        return vec![];
-    }
-
-    while leaves.len() > 1 {
-        if leaves.len() % 2 == 1 {
-            let last = leaves.last().unwrap().clone();
-            leaves.push(last);
+impl MerkleTree {
+    pub fn new(
+        leaves: Vec<(u32,Hash)>
+    ) -> Self {
+        let mut positions = HashMap::new();
+        let mut current_level = Vec::new();
+        for (index, (server_id,hash)) in leaves.iter().enumerate()
+        {
+            positions.insert(*server_id,index);
+            current_level.push(*hash);
         }
 
-        let mut next_level = Vec::new();
+        let mut levels = vec![current_level.clone()];
+        while current_level.len() > 1 {
+            if current_level.len() % 2 == 1 {
+                let last = *current_level.last().unwrap();
+                current_level.push(last);
+            }
+            let mut next_level = Vec::new();
+            for pair in current_level.chunks(2)
+            {
+                next_level.push(
+                    hash_pair(
+                        &pair[0],
+                        &pair[1]
+                    )
+                );
+            }
 
-        for chunk in leaves.chunks(2) {
-            let mut combined = Vec::new();
-            combined.extend(&chunk[0]);
-            combined.extend(&chunk[1]);
+            levels.push(next_level.clone());
 
-            next_level.push(sha3_hash(&combined));
+            current_level = next_level;
         }
-        leaves = next_level;
+        Self {
+            levels,
+            server_positions: positions,
+        }
     }
-    leaves[0].clone()
+
+
 }
+
