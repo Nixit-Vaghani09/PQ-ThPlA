@@ -62,4 +62,9 @@ impl MerkleTree {
 
         Some(MerkleProof { nodes })
     }
+
+    pub fn root(&self) -> Hash {
+        let root_level = self.levels.last().unwrap();
+        root_level[0]
+    }
 }
