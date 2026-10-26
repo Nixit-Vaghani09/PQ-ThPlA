@@ -6,3 +6,4 @@ pub mod challenge;
 pub mod registration;
 pub mod server;
 pub mod threshold;
+pub mod user;
