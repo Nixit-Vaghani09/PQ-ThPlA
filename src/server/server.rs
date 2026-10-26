@@ -1,9 +1,18 @@
 // src/server/server.rs
+use std::collections::HashMap;
+use rand::rngs::OsRng;
 use sha3::{Digest, Sha3_256};
+use libcrux_ml_kem::{MlKemCiphertext, MlKemPrivateKey};
 use crate::auth::auth_request::AuthRequest;
 use crate::challenge::challenge::Challenge;
 use crate::server::credential_store::CredentialStore;
 use crate::threshold::server_share::ServerShare;
+use crate::ml_kem::session_mlkem::SessionContext;
+use crate::ml_kem::mlkem::decapsulation;
+use crate::ml_kem::channel_mlkem::ChannelError;
+
+
+
 
 pub struct Server {
 
@@ -12,7 +21,10 @@ pub struct Server {
     secret_share: ServerShare,
 
     credential_store: CredentialStore,
+
+    active_sessions: HashMap<String,SessionContext>,
 }
+
 
 impl Server {
 
@@ -25,6 +37,7 @@ impl Server {
             server_id,
             secret_share,
             credential_store: CredentialStore::new(),
+            active_sessions:HashMap::new(),
         }
     }
 
@@ -54,12 +67,40 @@ impl Server {
 
         pub fn generate_challenge(
         &self,
-        request: &AuthRequest,
+        session_id:String,
     ) -> Challenge {
-
-        
-
-        let nonce = self.secret_share.derive_nonce(&session_id);
+        let mut nonce= [0u8;32];
+        OsRng.fill_bytes(&mut nonce);
         Challenge::new(self.server_id,session_id,nonce)
     }
+
+    pub fn create_server_session(
+    private_key: &MlKemPrivateKey<2400>,
+    ciphertext: &MlKemCiphertext<1088>,
+    session_id: u64,
+) -> Result<
+    SessionContext,
+    ChannelError,
+> {
+
+    let shared_secret =
+        decapsulation(
+            private_key,
+            ciphertext,
+        )?;
+
+    let mut session_key =
+        [0u8; 32];
+
+    session_key.copy_from_slice(
+        shared_secret.as_ref(),
+    );
+
+    Ok(
+        SessionContext::new(
+            session_key,
+            session_id,
+        )
+    )
+}
 }

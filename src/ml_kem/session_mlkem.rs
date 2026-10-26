@@ -1,5 +1,5 @@
 use crate::ml_kem::channel_mlkem::{ChannelContext, ChannelError, Message};
-
+use crate::ml_kem::mlkem::random_array;
 pub struct SessionContext {
     channel: ChannelContext,  // channel owns the AES key
     session_id: u64,
@@ -37,6 +37,13 @@ impl SessionContext {
 
     pub fn next_receive_nonce(&mut self) -> Result<[u8; 12], ChannelError> {
         self.channel.next_receive_nonce()
+    }
+
+    pub fn end_session(&mut self) -> Result<(),ChannelError> {
+        let mut seed = random_array::<32>();
+        self.rotate_key(&mut seed,)?;
+        Ok(())
+
     }
 }
 
