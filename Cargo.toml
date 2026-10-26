@@ -14,3 +14,4 @@ pqcrypto-sphincsplus = "0.7.2"
 p256 = { version = "0.13", features = ["ecdh"] }
 rand_core = "0.6"
 sha3= "0.10.0"
+sharks = "0.5"
