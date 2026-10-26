@@ -1,19 +1,40 @@
-use pqcrypto_sphincsplus::sphincsshake128ssimple::{keypair,sign,PublicKey,SecretKey,open,SignedMessage};
+use pqcrypto_sphincsplus::sphincsshake128ssimple::{
+    keypair,
+    detached_sign,
+    verify_detached_signature,
+    DetachedSignature,
+    PublicKey,
+    SecretKey,
+};
 
-pub fn generate_keys() -> (PublicKey,SecretKey){
-    let (pk,sk) = keypair();
-    (pk,sk)
+pub fn generate_keys() -> (PublicKey, SecretKey) {
+
+    let (pk, sk) = keypair();
+
+    (pk, sk)
 }
 
-pub fn sign_nonce(nonce: &[u8] , sk: &SecretKey) -> SignedMessage{
-    let signed: SignedMessage = sign(nonce,sk);
-    signed
+pub fn sign_message(
+    message: &[u8],
+    sk: &SecretKey,
+) -> DetachedSignature {
+
+    detached_sign(
+        message,
+        sk,
+    )
 }
 
-pub fn verify_Message(signed: &SignedMessage, pk: &PublicKey) -> Option<Vec<u8>>{
-    match open(&signed, &pk){
-        Ok(msg) => Some(msg),
-        Err(_) => None,
-    }
-}
+pub fn verify_message(
+    signature: &DetachedSignature,
+    message: &[u8],
+    pk: &PublicKey,
+) -> bool {
 
+    verify_detached_signature(
+        signature,
+        message,
+        pk,
+    )
+    .is_ok()
+}

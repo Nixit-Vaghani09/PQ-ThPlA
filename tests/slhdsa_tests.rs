@@ -1,55 +1,66 @@
-use pq_thpla::slh_dsa::slhdsa::{sign_nonce,generate_keys,verify_Message};
-use pqcrypto_sphincsplus::sphincsshake128ssimple::{PublicKey,SecretKey};
+use pq_thpla::slh_dsa::slhdsa::{generate_keys, sign_message, verify_message};
 
 #[test]
-fn test_generate_keys(){
-    let (_pk,_sk)=generate_keys();
+fn test_generate_keys() {
+    let (_pk, _sk) = generate_keys();
     assert!(true);
 }
 
 #[test]
 fn test_sign_verify() {
-    let (pk,sk) = generate_keys();
-    let nonce = b"hello";
-    let signed = sign_nonce(nonce,&sk);
-    let verified = verify_Message(&signed,&pk);
-    assert!(verified.is_some());
-    let recovered = verified.unwrap();
-    assert_eq!(recovered.as_slice(),nonce);
+    let (pk, sk) = generate_keys();
+
+    let message = b"hello";
+
+    let signature = sign_message(message, &sk);
+
+    assert!(verify_message(&signature, message, &pk,));
 }
 
 #[test]
 fn test_wrong_public_key() {
     let (_pk1, sk1) = generate_keys();
+
     let (pk2, _sk2) = generate_keys();
 
-    let nonce = b"authentication_nonce";
+    let message = b"authentication_nonce";
 
-    let signed = sign_nonce(nonce, &sk1);
+    let signature = sign_message(message, &sk1);
 
-    let result = verify_Message(&signed, &pk2);
-
-    assert!(result.is_none());
+    assert!(!verify_message(&signature, message, &pk2,));
 }
 
 #[test]
 fn test_different_nonce_signatures() {
-    let (_pk, sk) = generate_keys();
+    let (pk, sk) = generate_keys();
 
-    let sig1 = sign_nonce(b"nonce1", &sk);
-    let sig2 = sign_nonce(b"nonce2", &sk);
+    let sig1 = sign_message(b"nonce1", &sk);
 
-    let recovered1 = verify_Message(&sig1,&_pk).unwrap();
-    let recovered2=verify_Message(&sig2,&_pk).unwrap();
+    let sig2 = sign_message(b"nonce2", &sk);
 
-    assert_ne!(recovered1,recovered2);
+    assert!(verify_message(&sig1, b"nonce1", &pk,));
+
+    assert!(verify_message(&sig2, b"nonce2", &pk,));
+
+    assert!(!verify_message(&sig1, b"nonce2", &pk,));
 }
 
 #[test]
-fn test_signature_recovers_message() {
-    let (pk,sk) = generate_keys();
-    let nonce = b"nonce123";
-    let signed = sign_nonce(nonce,&sk);
-    let recovered = verify_Message(&signed,&pk).unwrap();
-    assert_eq!(recovered,nonce);
+fn test_tampered_message_fails() {
+    let (pk, sk) = generate_keys();
+
+    let signature = sign_message(b"nonce123", &sk);
+
+    assert!(!verify_message(&signature, b"different_nonce", &pk,));
+}
+
+#[test]
+fn test_wrong_signature_fails() {
+    let (pk1, _sk1) = generate_keys();
+
+    let (_pk2, sk2) = generate_keys();
+
+    let signature = sign_message(b"nonce", &sk2);
+
+    assert!(!verify_message(&signature, b"nonce", &pk1,));
 }
