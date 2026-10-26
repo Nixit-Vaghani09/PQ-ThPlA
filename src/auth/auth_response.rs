@@ -5,7 +5,7 @@ use std::sync::Arc;
 #[derive(Clone,Debug)]
 pub struct AuthResponse {
     pub merkle_root:Hash,
-    pub roof: MerkleProof,
+    pub proof: MerkleProof,
     pub signature: Arc<Vec<u8>>,
 }
 

@@ -17,11 +17,11 @@ impl Challenge {
         }
     }
     
-    pub fn hash_challenge(challenge: &Challenge) -> Hash {
+    pub fn hash_challenge(&self) -> Hash {
         let mut hasher = Sha3_256::new();
-        hasher.update(challenge.server_id.to_be_bytes());
-        hasher.update(challenge.session_id.as_bytes());
-        hasher.update(challenge.nonce);
+        hasher.update(self.server_id.to_be_bytes());
+        hasher.update(self.session_id.as_bytes());
+        hasher.update(self.nonce);
         hasher.finalize().into()
     }
 }
