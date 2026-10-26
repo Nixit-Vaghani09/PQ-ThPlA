@@ -1,6 +1,7 @@
 use crate::merkle_tree::tree::{MerkleTree};
 use crate::auth::auth_response::AuthResponse;
-
+use std::sync::Arc;
+use std::collections::HashMap;
 
 pub fn generate_auth_responses(tree: &MerkleTree,signature: Vec<u8>) -> HashMap<u32,AuthResponse>
 {
@@ -20,3 +21,4 @@ pub fn generate_auth_responses(tree: &MerkleTree,signature: Vec<u8>) -> HashMap<
     }
     responses
 }
+

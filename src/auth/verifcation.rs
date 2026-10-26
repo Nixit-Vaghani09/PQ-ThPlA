@@ -1,5 +1,4 @@
 use crate::auth::auth_response::AuthResponse;
-use crate::challenge;
 use crate::challenge::challenge::Challenge;
 use crate::merkle_tree::proof::verify_proof;
 
