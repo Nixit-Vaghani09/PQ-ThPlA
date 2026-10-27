@@ -1,5 +1,5 @@
 use crate::merkle_tree::hash::hash_pair;
-use crate::merkle_tree::proof::{MerkleProof,ProofNode};
+use crate::merkle_tree::proof::{MerkleProof, ProofNode};
 use std::collections::HashMap;
 pub type Hash = [u8; 32];
 pub struct MerkleTree {
@@ -44,9 +44,9 @@ impl MerkleTree {
 
         for level in &self.levels[..self.levels.len() - 1] {
             let (sibling_index, is_left) = if index % 2 == 0 {
-                (index + 1, true)
+                (index + 1, false)
             } else {
-                (index - 1, false) 
+                (index - 1, true)
             };
 
             let sibling = if sibling_index < level.len() {

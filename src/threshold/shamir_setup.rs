@@ -27,7 +27,7 @@ impl ThresholdConfig {
 
 pub fn generate_server_shares(secret: &[u8], n: usize, t: usize) -> Vec<ServerShare> {
     assert!(t > 0);
-    assert!(t >= n);
+    assert!(t <= n);
 
     let sharks = Sharks(u8::try_from(t).expect("threshold exceeds u8"));
     let dealer = sharks.dealer(secret);
